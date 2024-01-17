@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -6,24 +7,34 @@ from .validators import real_score
 User = get_user_model()
 
 
-class Title(models.Model):
-    name = models.TextField()
-
-
-class Review(models.Model):
-    text = models.TextField()
+class BaseModel(models.Model):
     pub_date = models.DateTimeField(
         'Дата публикации',
         auto_now_add=True
     )
+
+    class Meta:
+        abstract = True
+        ordering = ('-pub_date',)
+
+
+class Title(models.Model):
+    name = models.TextField()
+
+
+class Review(BaseModel):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='reviews'
     )
+    text = models.TextField('Текст Отзыва')
     score = models.PositiveSmallIntegerField(
         'Рейтинг',
-        validators=(real_score,)
+        validators=(real_score,),
+        help_text=(
+            'Оцените произведение по шкале от 1 до 10.'
+        )
     )
     title = models.ForeignKey(
         Title,
@@ -33,24 +44,29 @@ class Review(models.Model):
         null=True
     )
 
-    class Meta:
-        ordering = ('pub_date',)
+    class Meta(BaseModel.Meta):
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
 
     def __str__(self):
-        return self.text[:20]
+        return self.text[:settings.SHORT_NAME]
 
 
-class Comment(models.Model):
-    text = models.TextField()
+class Comment(BaseModel):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments'
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
     )
-    pub_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True
-    )
+    text = models.TextField('Текст Коментария')
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name='comments'
+        Review, on_delete=models.CASCADE,
+        related_name='comments'
     )
 
+    class Meta(BaseModel.Meta):
+        verbose_name = 'Комментрарий'
+        verbose_name_plural = 'Комментарии'
+
     def __str__(self):
-        return self.text[:20]
+        return self.text[:settings.SHORT_NAME]
