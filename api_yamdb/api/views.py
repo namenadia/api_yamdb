@@ -1,13 +1,9 @@
-from rest_framework import viewsets, mixins, filters
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Avg
+from rest_framework import filters, mixins, viewsets
+from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Category, Genre, Title
-from .serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    TitleSerializer
-)
+from .serializers import CategorySerializer, GenreSerializer, TitleSerializer
 
 
 class ListCreateDestroyViewSet(
@@ -16,15 +12,16 @@ class ListCreateDestroyViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
-    pass
+    pagination_class = LimitOffsetPagination
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.annotate(rating=Avg('reviews__score')).all()
+    queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('categories__slug', 'geners__slug', 'name', 'year')
     http_method_names = ['get', 'post', 'patch', 'delete']
+    pagination_class = LimitOffsetPagination
 #   permission_classes = ...
 
 
