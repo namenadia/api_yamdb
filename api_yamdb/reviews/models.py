@@ -2,20 +2,10 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from core.models import BaseModel
 from .validators import real_score
 
 User = get_user_model()
-
-
-class BaseModel(models.Model):
-    pub_date = models.DateTimeField(
-        'Дата публикации',
-        auto_now_add=True
-    )
-
-    class Meta:
-        abstract = True
-        ordering = ('-pub_date',)
 
 
 class Title(models.Model):

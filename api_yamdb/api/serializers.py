@@ -1,4 +1,3 @@
-from django.db.models import Avg
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework import serializers
@@ -12,7 +11,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
         default=serializers.CurrentUserDefault()
     )
-    score = serializers.SerializerMethodField()
 
     class Meta:
         fields = '__all__'
@@ -25,9 +23,6 @@ class ReviewSerializer(serializers.ModelSerializer):
                 message='Вы уже оставили отзыв с оценкой'
             )
         ]
-
-    def get_score(self, obj):
-        return round(Review.objects.aggregate(Avg('score')))
 
 
 class CommentSerializer(serializers.ModelSerializer):
