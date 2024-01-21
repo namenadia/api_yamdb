@@ -11,7 +11,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .permissions import IsAdmin, IsAdminOrReadOnly
+from .permissions import (
+    IsAdmin,
+    IsAdminOrReadOnly,
+    IsAdminModeratOrAuthorOrReadOnly
+)
 from .serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -146,6 +150,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
+    permission_classes = [IsAdminModeratOrAuthorOrReadOnly,]
 
     def get_title(self):
         return get_object_or_404(
@@ -164,6 +169,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = [IsAdminModeratOrAuthorOrReadOnly,]
 
     def get_review(self):
         return get_object_or_404(
