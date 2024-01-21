@@ -24,6 +24,7 @@ from .serializers import (
     UserEditSerializer,
     UserSerializer
 )
+from .filters import TitleFilter
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
@@ -123,7 +124,7 @@ class ListCreateDestroyViewSet(
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    filterset_class = TitleFilter
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = [IsAdminOrReadOnly,]
 
