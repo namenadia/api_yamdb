@@ -185,6 +185,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     serializer_class = CommentSerializer
     permission_classes = [IsAdminModeratOrAuthorOrReadOnly,]
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_review(self):
         return get_object_or_404(
