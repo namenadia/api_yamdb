@@ -98,7 +98,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     @action(
-        methods=['get', 'patch',],
+        methods=['get', 'patch', ],
         detail=False, url_path='me',
         permission_classes=[IsAuthenticated],
         serializer_class=UserEditSerializer
@@ -125,7 +125,7 @@ class ListCreateDestroyViewSet(
 
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    permission_classes = [IsAdminOrReadOnly,]
+    permission_classes = [IsAdminOrReadOnly, ]
     lookup_field = 'slug'
 
 
@@ -150,7 +150,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     http_method_names = ['get', 'post', 'patch', 'delete']
-    permission_classes = [IsAdminOrReadOnly,]
+    permission_classes = [IsAdminOrReadOnly, ]
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -162,7 +162,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Review."""
 
     serializer_class = ReviewSerializer
-    permission_classes = [IsAdminModeratOrAuthorOrReadOnly,]
+    permission_classes = [IsAdminModeratOrAuthorOrReadOnly, ]
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_title(self):
@@ -184,7 +184,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Comment."""
 
     serializer_class = CommentSerializer
-    permission_classes = [IsAdminModeratOrAuthorOrReadOnly,]
+    permission_classes = [IsAdminModeratOrAuthorOrReadOnly, ]
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_review(self):
