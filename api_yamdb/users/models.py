@@ -24,7 +24,7 @@ class User(AbstractUser):
         validators=[RegexValidator(
             regex=r'^[\w.@+-]+$',
             message='Имя пользователя содержит недопустимый символ.'
-        ),]
+        ), ]
     )
     email = models.EmailField(
         max_length=254,
