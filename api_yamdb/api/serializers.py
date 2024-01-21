@@ -1,8 +1,9 @@
 from statistics import mean
 
 from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.serializers import SlugRelatedField
+from rest_framework.generics import get_object_or_404
+from rest_framework.exceptions import ValidationError
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
@@ -104,13 +105,16 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Review
         read_only_fields = ('title',)
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('author', 'title'),
-                message='Вы уже оставили отзыв с оценкой'
-            )
-        ]
+        
+    def validate(self, data):
+        if self.context.get('request').method == 'POST':
+            author = self.context.get('request').user
+            title_id = self.context.get('view').kwargs.get('title_id')
+            title = get_object_or_404(Title, id=title_id)
+            if Review.objects.filter(title_id=title.id,
+                                     author=author).exists():
+                raise ValidationError('Может существовать только один отзыв!')
+        return data
 
 
 class CommentSerializer(serializers.ModelSerializer):

@@ -100,7 +100,6 @@ class Review(ReviewCommentBaseModel):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='reviews'
     )
     text = models.TextField('Текст Отзыва')
     score = models.PositiveSmallIntegerField(
@@ -113,7 +112,6 @@ class Review(ReviewCommentBaseModel):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews',
         blank=True,
         null=True
     )
@@ -121,6 +119,13 @@ class Review(ReviewCommentBaseModel):
     class Meta(ReviewCommentBaseModel.Meta):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
+        default_related_name = "reviews"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_author_title'
+            )
+        ]
 
     def __str__(self):
         return self.text[:settings.SHORT_NAME]

@@ -163,6 +163,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     serializer_class = ReviewSerializer
     permission_classes = [IsAdminModeratOrAuthorOrReadOnly,]
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_title(self):
         return get_object_or_404(
@@ -170,7 +171,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         )
 
     def get_queryset(self):
-        return self.get_title().titles.all()
+        return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
         serializer.save(
