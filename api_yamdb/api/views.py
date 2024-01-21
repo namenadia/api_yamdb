@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
@@ -12,7 +13,6 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from reviews.models import Category, Genre, Review, Title
-from users.models import User
 from .filters import TitleFilter
 from .permissions import (
     IsAdmin,
@@ -32,11 +32,12 @@ from .serializers import (
     UserSerializer
 )
 
+User = get_user_model()
+
 
 @api_view(['POST'])
 def register_user(request):
     """Функция регистрации user, генерации и отправки кода на почту."""
-
     serializer = RegistrationSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     try:
@@ -65,7 +66,6 @@ def register_user(request):
 @api_view(['POST'])
 def get_token(request):
     """Функция выдачи токена."""
-
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(

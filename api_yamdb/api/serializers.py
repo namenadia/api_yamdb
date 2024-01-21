@@ -1,13 +1,15 @@
 from statistics import mean
 
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.serializers import SlugRelatedField
 from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import ValidationError
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.models import User
 from .validators import ValidateUsername, ValidateTitle
+
+User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer, ValidateUsername):
@@ -105,7 +107,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Review
         read_only_fields = ('title',)
-        
+
     def validate(self, data):
         if self.context.get('request').method == 'POST':
             author = self.context.get('request').user
