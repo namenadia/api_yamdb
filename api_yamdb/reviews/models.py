@@ -10,9 +10,10 @@ from core.models import BaseModel, CategoryGenreBaseModel
 
 User = get_user_model()
 
+
 class Category(CategoryGenreBaseModel):
 
-    class Meta:
+    class Meta(CategoryGenreBaseModel.Meta):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -22,7 +23,7 @@ class Category(CategoryGenreBaseModel):
 
 class Genre(CategoryGenreBaseModel):
 
-    class Meta:
+    class Meta(CategoryGenreBaseModel.Meta):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -64,6 +65,7 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
+        ordering = ('name',)
 
     def __str__(self):
         return self.name[:settings.SHORT_NAME]
@@ -85,6 +87,7 @@ class TitleGenre(models.Model):
     def __str__(self):
         return f'{self.title} - {self.genre}'
 
+
 class Review(BaseModel):
     author = models.ForeignKey(
         User,
@@ -102,7 +105,7 @@ class Review(BaseModel):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='titles',
+        related_name='reviews',
         blank=True,
         null=True
     )

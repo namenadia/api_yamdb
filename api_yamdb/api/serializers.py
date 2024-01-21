@@ -2,11 +2,11 @@ from statistics import mean
 
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from rest_framework.validators import UniqueTogetherValidator
 
-from .validators import ValidateUsername, UniqueTogetherValidator
+from .validators import ValidateUsername
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
-
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -52,10 +52,32 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleRSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
     rating = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = '__all__'
+        model = Title
+
+    def get_rating(self, obj):
+        reviews = obj.reviews.all()
+        return round(
+            mean(review.score for review in reviews)
+        ) if reviews else None
+
+
+class TitleCUDSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug'
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+        many=True
+    )
 
     class Meta:
         fields = '__all__'
@@ -67,13 +89,10 @@ class TitleSerializer(serializers.ModelSerializer):
         return value
 
     def validate_genre(self, value):
-        if not Genre.objects.filter(id=value.id).exists():
-            raise serializers.ValidationError("Жанр не существует")
+        for genre in value:
+            if not Genre.objects.filter(id=genre.id).exists():
+                raise serializers.ValidationError("Жанр не существует")
         return value
-
-    def get_rating(self, obj):
-        reviews = obj.reviews.all()
-        return round(mean(review.score for review in reviews)) if reviews else None
 
 
 class UserSerializer(serializers.ModelSerializer, ValidateUsername):
@@ -104,4 +123,3 @@ class UserEditSerializer(UserSerializer):
     """Сериализатор модели User для get и patch."""
 
     role = serializers.CharField(read_only=True)
-

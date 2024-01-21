@@ -9,9 +9,9 @@ from reviews.models import (
     Title,
     TitleGenre,
     Review,
-    Comment,
-    User
+    Comment
 )
+from users.models import User
 
 TABLES = {
     User: 'users.csv',

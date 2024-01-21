@@ -3,14 +3,14 @@ from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 
 from .views import (
-  UserViewSet, 
-  get_token,
-  register_user,
-  CategoryViewSet,
-  CommentViewSet,
-  GenreViewSet,
-  ReviewViewSet,
-  TitleViewSet
+    UserViewSet,
+    get_token,
+    register_user,
+    CategoryViewSet,
+    CommentViewSet,
+    GenreViewSet,
+    ReviewViewSet,
+    TitleViewSet
 )
 
 router = DefaultRouter()
@@ -25,7 +25,7 @@ router.register(
 router.register(
     r'^titles/(?P<title_id>\d+)/reviews/(?P<review_id>)/comments',
     CommentViewSet, basename='comments'
-) 
+)
 
 urlpatterns_auth = [
     path('signup/', register_user, name='register_user'),
@@ -40,5 +40,4 @@ urlpatterns = [
         TemplateView.as_view(template_name='redoc.html'),
         name='redoc'
     ),
-
 ]

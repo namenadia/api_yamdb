@@ -14,15 +14,15 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .permissions import IsAdmin, IsAdminOrReadOnly
 from .serializers import (
     CategorySerializer,
-    CommentSerializer,     
+    CommentSerializer,
     GenreSerializer,
     RegistrationSerializer,
     ReviewSerializer,
-    TitleSerializer,
+    TitleRSerializer,
+    TitleCUDSerializer,
     TokenSerializer,
     UserEditSerializer,
-    UserSerializer,
-    
+    UserSerializer
 )
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
@@ -94,21 +94,20 @@ class UserViewSet(viewsets.ModelViewSet):
         methods=['get', 'patch',],
         detail=False, url_path='me',
         permission_classes=[IsAuthenticated],
-        serializer_class=UserEditSerializer,
-
+        serializer_class=UserEditSerializer
     )
     def get_edit_user(self, request):
         user = request.user
         serializer = self.get_serializer(user)
         if request.method == 'PATCH':
             serializer = self.get_serializer(
-                 user, data=request.data, partial=True
+                user, data=request.data, partial=True
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-      
-  
+
+
 class ListCreateDestroyViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -118,15 +117,20 @@ class ListCreateDestroyViewSet(
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = [IsAdminOrReadOnly,]
+    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('categories__slug', 'geners__slug', 'name', 'year')
+    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = [IsAdminOrReadOnly,]
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return TitleRSerializer
+        return TitleCUDSerializer
 
 
 class CategoryViewSet(ListCreateDestroyViewSet):
@@ -137,6 +141,7 @@ class CategoryViewSet(ListCreateDestroyViewSet):
 class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
