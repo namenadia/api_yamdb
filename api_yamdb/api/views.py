@@ -2,21 +2,25 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import get_object_or_404
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, status, mixins, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminOrReadOnly
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from users.models import User
+from users.models import User, Category, Genre, Title
 from .permissions import (IsAdmin,)
 from .serializers import (
     RegistrationSerializer,
     TokenSerializer,
     UserEditSerializer,
-    UserSerializer
+    UserSerializer,
+    CategorySerializer, 
+    GenreSerializer, 
+    TitleSerializer
 )
 
 
@@ -99,3 +103,33 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+      
+  
+class ListCreateDestroyViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    permission_classes = [IsAdminOrReadOnly,]
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('categories__slug', 'geners__slug', 'name', 'year')
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    permission_classes = [IsAdminOrReadOnly,]
+
+
+class CategoryViewSet(ListCreateDestroyViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(ListCreateDestroyViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
