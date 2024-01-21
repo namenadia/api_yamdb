@@ -10,6 +10,7 @@ from core.models import BaseModel, CategoryGenreBaseModel
 
 User = get_user_model()
 
+
 class Category(CategoryGenreBaseModel):
 
     class Meta:
@@ -84,6 +85,7 @@ class TitleGenre(models.Model):
 
     def __str__(self):
         return f'{self.title} - {self.genre}'
+
 
 class Review(BaseModel):
     author = models.ForeignKey(

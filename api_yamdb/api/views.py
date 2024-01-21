@@ -11,10 +11,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .permissions import IsAdmin, IsAdminOrReadOnly
+from .permissions import (
+    IsAdmin, IsAdminOrReadOnly,
+    IsAdminModeratOrAuthorOrReadOnly
+)
 from .serializers import (
     CategorySerializer,
-    CommentSerializer,     
+    CommentSerializer,
     GenreSerializer,
     RegistrationSerializer,
     ReviewSerializer,
@@ -22,7 +25,6 @@ from .serializers import (
     TokenSerializer,
     UserEditSerializer,
     UserSerializer,
-    
 )
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
@@ -102,13 +104,13 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(user)
         if request.method == 'PATCH':
             serializer = self.get_serializer(
-                 user, data=request.data, partial=True
+                user, data=request.data, partial=True
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-      
-  
+
+
 class ListCreateDestroyViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -138,8 +140,10 @@ class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
+
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
+    permission_classes = [IsAdminModeratOrAuthorOrReadOnly,]
 
     def get_title(self):
         return get_object_or_404(
@@ -158,6 +162,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = [IsAdminModeratOrAuthorOrReadOnly,]
 
     def get_review(self):
         return get_object_or_404(
