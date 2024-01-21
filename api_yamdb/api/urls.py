@@ -6,8 +6,10 @@ from .views import (
   UserViewSet, 
   get_token,
   register_user,
-  CategoryViewSet, 
-  GenreViewSet, 
+  CategoryViewSet,
+  CommentViewSet,
+  GenreViewSet,
+  ReviewViewSet,
   TitleViewSet
 )
 
@@ -16,6 +18,14 @@ router.register(r'users', UserViewSet, basename='users')
 router.register(r'categories', CategoryViewSet, basename='categories')
 router.register(r'genres', GenreViewSet, basename='genres')
 router.register(r'titles', TitleViewSet, basename='titles')
+router.register(
+    r'^titles/(?P<title_id>\d+)/reviews',
+    ReviewViewSet, basename='reviews'
+)
+router.register(
+    r'^titles/(?P<title_id>\d+)/reviews/(?P<review_id>)/comments',
+    CommentViewSet, basename='comments'
+) 
 
 urlpatterns_auth = [
     path('signup/', register_user, name='register_user'),
@@ -30,4 +40,5 @@ urlpatterns = [
         TemplateView.as_view(template_name='redoc.html'),
         name='redoc'
     ),
+
 ]

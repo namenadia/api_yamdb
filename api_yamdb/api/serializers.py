@@ -1,10 +1,41 @@
 from statistics import mean
 
 from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
 
+from .validators import ValidateUsername, UniqueTogetherValidator
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
-from .validators import ValidateUsername
-from reviews.models import Category, Genre, Title
+
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+        default=serializers.CurrentUserDefault()
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Review
+        read_only_fields = ('title',)
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=('user', 'title'),
+                message='Вы уже оставили отзыв с оценкой'
+            )
+        ]
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = SlugRelatedField(slug_field='username', read_only=True)
+
+    class Meta:
+        fields = '__all__'
+        model = Comment
+        read_only_fields = ('review',)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -42,7 +73,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         reviews = obj.reviews.all()
-        return mean(review.score for review in reviews) if reviews else None
+        return round(mean(review.score for review in reviews)) if reviews else None
 
 
 class UserSerializer(serializers.ModelSerializer, ValidateUsername):
@@ -73,3 +104,4 @@ class UserEditSerializer(UserSerializer):
     """Сериализатор модели User для get и patch."""
 
     role = serializers.CharField(read_only=True)
+
