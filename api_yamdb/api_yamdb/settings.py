@@ -116,13 +116,6 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
-# project constatnts
-
-SHORT_NAME = 20
-
-DEFAULT_FROM_EMAIL = 'registration_YaMDb@mail.com'
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
@@ -142,8 +135,16 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 4,
 }
 
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+
+# project constatnts
+
+SHORT_NAME = 20
+
+DEFAULT_FROM_EMAIL = 'registration_YaMDb@mail.com'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

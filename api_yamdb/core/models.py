@@ -1,9 +1,10 @@
-
 from django.core.validators import RegexValidator
 from django.db import models
 
 
-class BaseModel(models.Model):
+class ReviewCommentBaseModel(models.Model):
+    """Абстрактная модель для Review и Comment"""
+
     pub_date = models.DateTimeField(
         'Дата публикации',
         auto_now_add=True
@@ -15,6 +16,8 @@ class BaseModel(models.Model):
 
 
 class CategoryGenreBaseModel(models.Model):
+    """Абстрактная модель для Category и Genre"""
+
     name = models.CharField('Название', max_length=256)
     slug = models.SlugField(
         'Слаг',

@@ -3,14 +3,14 @@ from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 
 from .views import (
-    UserViewSet,
-    get_token,
-    register_user,
     CategoryViewSet,
     CommentViewSet,
     GenreViewSet,
     ReviewViewSet,
-    TitleViewSet
+    TitleViewSet,
+    UserViewSet,
+    get_token,
+    register_user
 )
 
 router = DefaultRouter()

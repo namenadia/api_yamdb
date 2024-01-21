@@ -4,95 +4,9 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 
-from .validators import ValidateUsername
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
-
-
-class ReviewSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(
-        slug_field='username',
-        read_only=True,
-        default=serializers.CurrentUserDefault()
-    )
-
-    class Meta:
-        fields = '__all__'
-        model = Review
-        read_only_fields = ('title',)
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('user', 'title'),
-                message='Вы уже оставили отзыв с оценкой'
-            )
-        ]
-
-
-class CommentSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(slug_field='username', read_only=True)
-
-    class Meta:
-        fields = '__all__'
-        model = Comment
-        read_only_fields = ('review',)
-
-
-class CategorySerializer(serializers.ModelSerializer):
-
-    class Meta:
-        fields = ('name', 'slug')
-        model = Category
-
-
-class GenreSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        fields = ('name', 'slug')
-        model = Genre
-
-
-class TitleRSerializer(serializers.ModelSerializer):
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer()
-    rating = serializers.SerializerMethodField()
-
-    class Meta:
-        fields = '__all__'
-        model = Title
-
-    def get_rating(self, obj):
-        reviews = obj.reviews.all()
-        return round(
-            mean(review.score for review in reviews)
-        ) if reviews else None
-
-
-class TitleCUDSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
-        queryset=Category.objects.all(),
-        slug_field='slug'
-    )
-    genre = serializers.SlugRelatedField(
-        queryset=Genre.objects.all(),
-        slug_field='slug',
-        many=True
-    )
-
-    class Meta:
-        fields = '__all__'
-        model = Title
-
-    def validate_category(self, value):
-        if not Category.objects.filter(id=value.id).exists():
-            raise serializers.ValidationError("Категория не существует")
-        return value
-
-    def validate_genre(self, value):
-        for genre in value:
-            if not Genre.objects.filter(id=genre.id).exists():
-                raise serializers.ValidationError("Жанр не существует")
-        return value
+from .validators import ValidateUsername, ValidateTitle
 
 
 class UserSerializer(serializers.ModelSerializer, ValidateUsername):
@@ -123,3 +37,88 @@ class UserEditSerializer(UserSerializer):
     """Сериализатор модели User для get и patch."""
 
     role = serializers.CharField(read_only=True)
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор модели Category."""
+
+    class Meta:
+        fields = ('name', 'slug')
+        model = Category
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Genre."""
+
+    class Meta:
+        fields = ('name', 'slug')
+        model = Genre
+
+
+class TitleRSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Title для GET запросов."""
+
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+    rating = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = '__all__'
+        model = Title
+
+    def get_rating(self, obj):
+        reviews = obj.reviews.all()
+        return round(
+            mean(review.score for review in reviews)
+        ) if reviews else None
+
+
+class TitleCUDSerializer(serializers.ModelSerializer, ValidateTitle):
+    """Сериализатор модели Title для небезопасных запросов."""
+
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug'
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+        many=True
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Title
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Review."""
+
+    author = SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+        default=serializers.CurrentUserDefault()
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Review
+        read_only_fields = ('title',)
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=('author', 'title'),
+                message='Вы уже оставили отзыв с оценкой'
+            )
+        ]
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Comment."""
+
+    author = SlugRelatedField(slug_field='username', read_only=True)
+
+    class Meta:
+        fields = '__all__'
+        model = Comment
+        read_only_fields = ('review',)

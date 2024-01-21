@@ -3,18 +3,21 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.generics import get_object_or_404
-from rest_framework import filters, status, mixins, viewsets
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from reviews.models import Category, Genre, Review, Title
+from users.models import User
+from .filters import TitleFilter
 from .permissions import (
     IsAdmin,
-    IsAdminOrReadOnly,
-    IsAdminModeratOrAuthorOrReadOnly
+    IsAdminModeratOrAuthorOrReadOnly,
+    IsAdminOrReadOnly
 )
 from .serializers import (
     CategorySerializer,
@@ -22,20 +25,18 @@ from .serializers import (
     GenreSerializer,
     RegistrationSerializer,
     ReviewSerializer,
-    TitleRSerializer,
     TitleCUDSerializer,
+    TitleRSerializer,
     TokenSerializer,
     UserEditSerializer,
     UserSerializer
 )
-from .filters import TitleFilter
-from reviews.models import Category, Genre, Review, Title
-from users.models import User
 
 
 @api_view(['POST'])
 def register_user(request):
     """Функция регистрации user, генерации и отправки кода на почту."""
+
     serializer = RegistrationSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     try:
@@ -64,6 +65,7 @@ def register_user(request):
 @api_view(['POST'])
 def get_token(request):
     """Функция выдачи токена."""
+
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(
@@ -119,13 +121,31 @@ class ListCreateDestroyViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
+    """Миксин для Category и Genre."""
+
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = [IsAdminOrReadOnly,]
     lookup_field = 'slug'
 
 
+class CategoryViewSet(ListCreateDestroyViewSet):
+    """Вьюсет для модели Category."""
+
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(ListCreateDestroyViewSet):
+    """Вьюсет для модели Genre."""
+
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+
+
 class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели Title."""
+
     queryset = Title.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
@@ -138,17 +158,9 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleCUDSerializer
 
 
-class CategoryViewSet(ListCreateDestroyViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-
-
-class GenreViewSet(ListCreateDestroyViewSet):
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-
-
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели Review."""
+
     serializer_class = ReviewSerializer
     permission_classes = [IsAdminModeratOrAuthorOrReadOnly,]
 
@@ -168,6 +180,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели Comment."""
+
     serializer_class = CommentSerializer
     permission_classes = [IsAdminModeratOrAuthorOrReadOnly,]
 

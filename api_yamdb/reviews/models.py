@@ -6,12 +6,13 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .validators import real_score
-from core.models import BaseModel, CategoryGenreBaseModel
+from core.models import ReviewCommentBaseModel, CategoryGenreBaseModel
 
 User = get_user_model()
 
 
 class Category(CategoryGenreBaseModel):
+    """Модель для категории."""
 
     class Meta(CategoryGenreBaseModel.Meta):
         verbose_name = 'Категория'
@@ -22,6 +23,7 @@ class Category(CategoryGenreBaseModel):
 
 
 class Genre(CategoryGenreBaseModel):
+    """Модель для жанра."""
 
     class Meta(CategoryGenreBaseModel.Meta):
         verbose_name = 'Жанр'
@@ -32,6 +34,8 @@ class Genre(CategoryGenreBaseModel):
 
 
 class Title(models.Model):
+    """Модель для произведения."""
+
     name = models.CharField('Название', max_length=256)
     year = models.PositiveSmallIntegerField(
         'Год выпуска',
@@ -72,6 +76,8 @@ class Title(models.Model):
 
 
 class TitleGenre(models.Model):
+    """Промежуточная модель соответсвия произведений и жанров."""
+
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -88,7 +94,9 @@ class TitleGenre(models.Model):
         return f'{self.title} - {self.genre}'
 
 
-class Review(BaseModel):
+class Review(ReviewCommentBaseModel):
+    """Модель для отзыва."""
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -110,7 +118,7 @@ class Review(BaseModel):
         null=True
     )
 
-    class Meta(BaseModel.Meta):
+    class Meta(ReviewCommentBaseModel.Meta):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
 
@@ -118,7 +126,9 @@ class Review(BaseModel):
         return self.text[:settings.SHORT_NAME]
 
 
-class Comment(BaseModel):
+class Comment(ReviewCommentBaseModel):
+    """Модель для комментария."""
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -130,7 +140,7 @@ class Comment(BaseModel):
         related_name='comments'
     )
 
-    class Meta(BaseModel.Meta):
+    class Meta(ReviewCommentBaseModel.Meta):
         verbose_name = 'Комментрарий'
         verbose_name_plural = 'Комментарии'
 
