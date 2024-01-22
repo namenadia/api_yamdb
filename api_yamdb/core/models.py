@@ -2,7 +2,7 @@ from django.core.validators import RegexValidator
 from django.db import models
 
 
-class ReviewCommentBaseModel(models.Model):
+class PubDateBaseModel(models.Model):
     """Абстрактная модель для Review и Comment."""
 
     pub_date = models.DateTimeField(
@@ -15,7 +15,7 @@ class ReviewCommentBaseModel(models.Model):
         ordering = ('-pub_date',)
 
 
-class CategoryGenreBaseModel(models.Model):
+class NameSlugBaseModel(models.Model):
     """Абстрактная модель для Category и Genre."""
 
     name = models.CharField('Название', max_length=256)

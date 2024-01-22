@@ -7,7 +7,6 @@ from reviews.models import (
     Category,
     Genre,
     Title,
-    TitleGenre,
     Review,
     Comment
 )
@@ -18,7 +17,6 @@ TABLES = {
     Category: 'category.csv',
     Genre: 'genre.csv',
     Title: 'titles.csv',
-    TitleGenre: 'genre_title.csv',
     Review: 'review.csv',
     Comment: 'comments.csv'
 }

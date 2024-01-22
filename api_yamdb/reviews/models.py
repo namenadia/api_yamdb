@@ -1,20 +1,19 @@
-from datetime import datetime
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator
 from django.db import models
+from django.utils import timezone
 
 from .validators import real_score
-from core.models import ReviewCommentBaseModel, CategoryGenreBaseModel
+from core.models import PubDateBaseModel, NameSlugBaseModel
 
 User = get_user_model()
 
 
-class Category(CategoryGenreBaseModel):
+class Category(NameSlugBaseModel):
     """Модель для категории."""
 
-    class Meta(CategoryGenreBaseModel.Meta):
+    class Meta(NameSlugBaseModel.Meta):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -22,10 +21,10 @@ class Category(CategoryGenreBaseModel):
         return self.name[:settings.SHORT_NAME]
 
 
-class Genre(CategoryGenreBaseModel):
+class Genre(NameSlugBaseModel):
     """Модель для жанра."""
 
-    class Meta(CategoryGenreBaseModel.Meta):
+    class Meta(NameSlugBaseModel.Meta):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -40,12 +39,8 @@ class Title(models.Model):
     year = models.PositiveSmallIntegerField(
         'Год выпуска',
         validators=[
-            MinValueValidator(
-                0,
-                message='Значение года не может быть отрицательным'
-            ),
             MaxValueValidator(
-                int(datetime.now().year),
+                timezone.now().year,
                 message='Значение года не может быть больше текущего'
             )
         ],
@@ -54,14 +49,12 @@ class Title(models.Model):
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
-        related_name='categories',
-        blank=True,
         null=True,
+        related_name='categories',
         verbose_name='Категория'
     )
     genre = models.ManyToManyField(
         Genre,
-        through='TitleGenre',
         related_name='genres',
         verbose_name='Жанр'
     )
@@ -75,26 +68,7 @@ class Title(models.Model):
         return self.name[:settings.SHORT_NAME]
 
 
-class TitleGenre(models.Model):
-    """Промежуточная модель соответсвия произведений и жанров."""
-
-    title = models.ForeignKey(
-        Title,
-        on_delete=models.CASCADE,
-        verbose_name='Произведение'
-    )
-    genre = models.ForeignKey(
-        Genre,
-        on_delete=models.SET_NULL,
-        null=True,
-        verbose_name='Жанр'
-    )
-
-    def __str__(self):
-        return f'{self.title} - {self.genre}'
-
-
-class Review(ReviewCommentBaseModel):
+class Review(PubDateBaseModel):
     """Модель для отзыва."""
 
     author = models.ForeignKey(
@@ -116,7 +90,7 @@ class Review(ReviewCommentBaseModel):
         null=True
     )
 
-    class Meta(ReviewCommentBaseModel.Meta):
+    class Meta(PubDateBaseModel.Meta):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         default_related_name = "reviews"
@@ -131,7 +105,7 @@ class Review(ReviewCommentBaseModel):
         return self.text[:settings.SHORT_NAME]
 
 
-class Comment(ReviewCommentBaseModel):
+class Comment(PubDateBaseModel):
     """Модель для комментария."""
 
     author = models.ForeignKey(
@@ -145,7 +119,7 @@ class Comment(ReviewCommentBaseModel):
         related_name='comments'
     )
 
-    class Meta(ReviewCommentBaseModel.Meta):
+    class Meta(PubDateBaseModel.Meta):
         verbose_name = 'Комментрарий'
         verbose_name_plural = 'Комментарии'
 
