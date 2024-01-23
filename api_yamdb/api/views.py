@@ -76,7 +76,7 @@ def get_token(request):
     ):
         token = RefreshToken.for_user(user)
         return Response(
-            {'access': str(token.access_token)}, status=status.HTTP_200_OK
+            {'token': str(token.access_token)}, status=status.HTTP_200_OK
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
