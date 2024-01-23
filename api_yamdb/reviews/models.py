@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .validators import real_score
 from .utils import current_year
 from core.models import PubDateBaseModel, NameSlugBaseModel
 
