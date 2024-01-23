@@ -7,12 +7,12 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import ValidationError
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from .validators import ValidateUsername, ValidateTitle
+from users.validators import ValidateUsername
 
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer, ValidateUsername):
+class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели User."""
 
     class Meta:
@@ -76,7 +76,7 @@ class TitleRSerializer(serializers.ModelSerializer):
         ) if reviews else None
 
 
-class TitleCUDSerializer(serializers.ModelSerializer, ValidateTitle):
+class TitleCUDSerializer(serializers.ModelSerializer):
     """Сериализатор модели Title для небезопасных запросов."""
 
     category = serializers.SlugRelatedField(
