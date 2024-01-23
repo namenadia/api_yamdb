@@ -12,7 +12,7 @@ from users.validators import ValidateUsername
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer, ValidateUsername):
     """Сериализатор модели User."""
 
     class Meta:
@@ -36,7 +36,7 @@ class TokenSerializer(serializers.Serializer, ValidateUsername):
     confirmation_code = serializers.CharField(required=True)
 
 
-class UserEditSerializer(UserSerializer):
+class UserEditSerializer(UserSerializer, ValidateUsername):
     """Сериализатор модели User для get и patch."""
 
     role = serializers.CharField(read_only=True)

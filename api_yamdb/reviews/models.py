@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .validators import real_score
@@ -79,7 +79,18 @@ class Review(PubDateBaseModel):
     text = models.TextField('Текст Отзыва')
     score = models.PositiveSmallIntegerField(
         'Рейтинг',
-        validators=(real_score,),
+        validators=[
+            MinValueValidator(
+                limit_value=settings.MIN_VALUE_SCORE,
+                message=('Значение оценки не может быть '
+                         f'меньше {settings.MIN_VALUE_SCORE}')
+            ),
+            MaxValueValidator(
+                limit_value=settings.MAX_VALUE_SCORE,
+                message=('Значение оценки не может быть '
+                         f'больше {settings.MAX_VALUE_SCORE}')
+            )
+        ],
         help_text=(
             'Оцените произведение по шкале от 1 до 10.'
         )
