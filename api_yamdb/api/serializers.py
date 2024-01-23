@@ -13,7 +13,7 @@ from users.validators import ValidateUsername
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer, ValidateUsername):
+class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели User."""
 
     class Meta:
@@ -29,12 +29,10 @@ class RegistrationSerializer(serializers.Serializer, ValidateUsername):
     username = serializers.CharField(
         required=True,
         max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all())]
     )
     email = serializers.EmailField(
         required=True,
         max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
     )
 
 
@@ -118,6 +116,19 @@ class TitleCUDSerializer(serializers.ModelSerializer):
             'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
         )
         model = Title
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['category'] = {
+            'name': (get_object_or_404(Category, slug=ret['category'])).name,
+            'slug': ret['category']}
+        genre = []
+        for genre_slug in ret['genre']:
+            genre.append({
+                'name': (get_object_or_404(Genre, slug=genre_slug)).name,
+                'slug': genre_slug})
+        ret['genre'] = genre
+        return ret
 
     def get_rating(self, obj):
         reviews = obj.reviews.all()
