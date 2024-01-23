@@ -2,38 +2,59 @@ import csv
 
 from django.conf import settings
 from django.core.management import BaseCommand
+from django.db import connection
 
-from reviews.models import (
-    Category,
-    Genre,
-    Title,
-    TitleGenre,
-    Review,
-    Comment
-)
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
-TABLES = {
-    User: 'users.csv',
-    Category: 'category.csv',
-    Genre: 'genre.csv',
-    Title: 'titles.csv',
-    TitleGenre: 'genre_title.csv',
-    Review: 'review.csv',
-    Comment: 'comments.csv'
+csv_list = [
+    'users',
+    'category',
+    'genre',
+    'titles',
+    'review',
+    'comments',
+    'genre_title',
+]
+
+csv_models = {
+    'category': Category,
+    'comments': Comment,
+    'genre': Genre,
+    'review': Review,
+    'titles': Title,
+    'users': User,
+    'author': User,
 }
 
 
 class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
-        for model, csv_f in TABLES.items():
+        for csv_f in csv_list:
             with open(
-                f'{settings.BASE_DIR}/static/data/{csv_f}',
+                str(settings.BASE_DIR) + '/static/data/' + csv_f + '.csv',
                 'r',
-                encoding='utf-8'
+                encoding='utf-8',
             ) as csv_file:
-                reader = csv.DictReader(csv_file)
-                model.objects.bulk_create(
-                    model(**data) for data in reader)
+                for data in csv.DictReader(csv_file):
+                    if csv_f == 'genre_title':
+                        cursor = connection.cursor()
+                        title_id = data['title_id']
+                        genre_id = data['genre_id']
+                        cursor.execute(
+                            'INSERT INTO reviews_title_genre '
+                            f'(title_id, genre_id) VALUES ({title_id}, '
+                            f'{genre_id})'
+                        )
+                        cursor.close()
+                        connection.close()
+                    else:
+                        for key, value in data.items():
+                            if key in csv_models:
+                                data[key] = csv_models[key].objects.get(
+                                    pk=value
+                                )
+                        model = csv_models.get(csv_f)(**data)
+                        model.save()
         self.stdout.write(self.style.SUCCESS('Данные загружены'))
