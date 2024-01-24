@@ -1,26 +1,20 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
-
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404, RetrieveUpdateAPIView, CreateAPIView
-from rest_framework.permissions import IsAuthenticated,AllowAny
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
-from reviews.models import Category, Genre, Review, Title
 from .filters import TitleFilter
 from .permissions import (
     IsAdmin,
     IsAdminModeratOrAuthorOrReadOnly,
     IsAdminOrReadOnly
 )
+from reviews.models import Category, Genre, Review, Title
 from .serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -33,9 +27,9 @@ from .serializers import (
     UserEditSerializer,
     UserSerializer
 )
+from .utils import send_confirmation_code, give_and_save_confirmation_code
 
 User = get_user_model()
-
 
 
 @api_view(['POST'])
@@ -47,31 +41,22 @@ def register_user(request):
     try:
         '''Если пользователь уже существует, посылаем ему код.'''
         user = User.objects.get(email=email, username=username)
-        confirmation_code = default_token_generator.make_token(user)
-        user.confirmation_code = confirmation_code
+        give_and_save_confirmation_code(user)
         data = request.data
     except ObjectDoesNotExist:
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = User.objects.create(email=email, username=username)
-        confirmation_code = default_token_generator.make_token(user)
+        give_and_save_confirmation_code(user)
         data = serializer.data
-    send_mail(
-        subject='Регистрация в проекте YaMDb.',
-        message=f'Ваш код подтверждения: {confirmation_code}',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[email]
-    )
+    send_confirmation_code(email, user.confirmation_code)
     return Response(data, status=status.HTTP_200_OK)
-
 
 
 @api_view(['POST'])
 def get_token(request):
     """Функция выдачи токена."""
     serializer = TokenSerializer(data=request.data)
-    data = request.data
-    print(data)
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data['username']
     confirmation_code = serializer.validated_data['confirmation_code']
@@ -111,12 +96,8 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def get_edit_user(self, request):
-        data = request.data
-        print(data)
         if request.method == 'GET':
             serializer = UserSerializer(request.user)
-            data = request.data
-            print(data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.method == 'PATCH':
             serializer = UserEditSerializer(
@@ -124,8 +105,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 data=request.data,
                 partial=True
             )
-            data = request.data
-            print(data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data,

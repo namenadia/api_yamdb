@@ -10,7 +10,6 @@ USER = 'user'
 
 class User(AbstractUser):
     """Класс пользователей."""
-    
 
     ROLES = (
         (ADMIN, 'Администратор'),

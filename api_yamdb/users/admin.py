@@ -1,7 +1,8 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 
-from .models import User
+User = get_user_model()
 
 
 @admin.register(User)
@@ -19,7 +20,6 @@ class MyUserAdmin(UserAdmin):
         'is_staff',
         'is_superuser',
     )
-    list_editable = ('role', 'is_staff', 'is_superuser',)
+    list_editable = ('role', 'is_staff',)
     list_filter = ('username',)
     search_fields = ('username', 'role')
-

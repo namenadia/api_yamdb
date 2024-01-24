@@ -6,7 +6,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.serializers import SlugRelatedField
 from rest_framework.validators import UniqueValidator
-from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.validators import ValidateUsername
@@ -39,7 +38,6 @@ class RegistrationSerializer(UserSerializer, ValidateUsername):
     )
 
 
-
 class TokenSerializer(serializers.Serializer, ValidateUsername):
     """Сериализатор токена."""
 
@@ -55,6 +53,7 @@ class UserEditSerializer(UserSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор модели Category."""
+
     slug = serializers.SlugField(
         max_length=50,
         validators=[
@@ -69,6 +68,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор модели Genre."""
+
     slug = serializers.SlugField(
         max_length=50,
         validators=[
