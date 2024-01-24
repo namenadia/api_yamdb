@@ -3,13 +3,14 @@ from django.db import models
 
 from .validators import ValidateUsername
 
+ADMIN = 'admin'
+MODERATOR = 'moderator'
+USER = 'user'
+
 
 class User(AbstractUser):
     """Класс пользователей."""
     
-    ADMIN = 'admin'
-    MODERATOR = 'moderator'
-    USER = 'user'
 
     ROLES = (
         (ADMIN, 'Администратор'),
@@ -70,12 +71,8 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        if self.role == User.ADMIN or self.is_staff or self.is_superuser:
-            User.is_staff = True
-            User.is_superuser = True
-            User.save(self)
-            return User
+        return self.role == ADMIN or self.is_staff or self.is_superuser
 
     @property
     def is_moderator(self):
-        return self.role == 'moderator'
+        return self.role == MODERATOR
