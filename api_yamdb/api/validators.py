@@ -1,24 +1,6 @@
-import re
-
-from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from reviews.models import Category, Genre
-
-
-class ValidateUsername:
-    """Валидаторы для username."""
-
-    def validate_username(self, username):
-        pattern = re.compile(r'^[\w.@+-]+')
-
-        if pattern.fullmatch(username) is None:
-            match = re.split(pattern, username)
-            symbol = ''.join(match)
-            raise ValidationError(f'Некорректные символы в username: {symbol}')
-        if username == 'me':
-            raise ValidationError('Ник "me" нельзя регистрировать!')
-        return username
 
 
 class ValidateTitle:

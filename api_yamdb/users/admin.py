@@ -1,10 +1,12 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
 
-from .models import User
+User = get_user_model()
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class MyUserAdmin(UserAdmin):
     """Класс настройки раздела пользователей."""
 
     list_display = (
@@ -14,8 +16,10 @@ class UserAdmin(admin.ModelAdmin):
         'first_name',
         'last_name',
         'bio',
-        'role'
+        'role',
+        'is_staff',
+        'is_superuser',
     )
-    list_editable = ('role',)
+    list_editable = ('role', 'is_staff',)
     list_filter = ('username',)
     search_fields = ('username', 'role')

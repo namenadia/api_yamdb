@@ -136,7 +136,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
@@ -148,3 +148,6 @@ SHORT_NAME = 20
 DEFAULT_FROM_EMAIL = 'registration_YaMDb@mail.com'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MIN_VALUE_SCORE = 1
+MAX_VALUE_SCORE = 10
