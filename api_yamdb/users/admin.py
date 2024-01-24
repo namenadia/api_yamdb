@@ -15,9 +15,11 @@ class MyUserAdmin(UserAdmin):
         'first_name',
         'last_name',
         'bio',
-        'role'
+        'role',
+        'is_staff',
+        'is_superuser',
     )
-    list_editable = ('role',)
+    list_editable = ('role', 'is_staff', 'is_superuser',)
     list_filter = ('username',)
     search_fields = ('username', 'role')
 

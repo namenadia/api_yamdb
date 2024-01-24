@@ -44,7 +44,7 @@ class Title(models.Model):
             )
         ],
     )
-    description = models.TextField('Описание', blank=True, null=True)
+    description = models.TextField('Описание', blank=True)
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
