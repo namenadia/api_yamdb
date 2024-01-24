@@ -3,14 +3,16 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import get_object_or_404, RetrieveUpdateAPIView, CreateAPIView
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, Review, Title
 from .filters import TitleFilter
@@ -35,50 +37,56 @@ from .serializers import (
 User = get_user_model()
 
 
+
 @api_view(['POST'])
 def register_user(request):
     """Функция регистрации user, генерации и отправки кода на почту."""
-    serializer = RegistrationSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    username = request.data.get('username')
+    email = request.data.get('email')
+
     try:
-        user, is_created = User.objects.get_or_create(
-            **serializer.validated_data
-        )
-    except IntegrityError:
-        if User.objects.filter(username=request.data.get('username')).exists():
-            raise ValidationError(
-                'username занят!', status.HTTP_400_BAD_REQUEST
-            )
-        elif User.objects.filter(email=request.data.get('email')).exists():
-            raise ValidationError(
-                'email занят!', status.HTTP_400_BAD_REQUEST
-            )
-    confirmation_code = default_token_generator.make_token(user)
+        '''Если пользователь уже существует, посылаем ему код.'''
+        user = User.objects.get(email=email, username=username)
+        confirmation_code = default_token_generator.make_token(user)
+        user.confirmation_code = confirmation_code
+        data = request.data
+    except ObjectDoesNotExist:
+        serializer = RegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.create(email=email, username=username)
+        confirmation_code = default_token_generator.make_token(user)
+        data = serializer.data
     send_mail(
         subject='Регистрация в проекте YaMDb.',
         message=f'Ваш код подтверждения: {confirmation_code}',
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email]
+        recipient_list=[email]
     )
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(data, status=status.HTTP_200_OK)
+
 
 
 @api_view(['POST'])
 def get_token(request):
     """Функция выдачи токена."""
     serializer = TokenSerializer(data=request.data)
+    data = request.data
+    print(data)
     serializer.is_valid(raise_exception=True)
-    user = get_object_or_404(
-        User, username=serializer.validated_data['username']
-    )
-    if default_token_generator.check_token(
-            user, serializer.validated_data['confirmation_code']
-    ):
-        token = RefreshToken.for_user(user)
+    username = serializer.validated_data['username']
+    confirmation_code = serializer.validated_data['confirmation_code']
+    user = get_object_or_404(User, username=username)
+
+    if user.confirmation_code == confirmation_code:
+        token = AccessToken.for_user(user)
         return Response(
-            {'token': str(token.access_token)}, status=status.HTTP_200_OK
+            data={'token': str(token)},
+            status=status.HTTP_200_OK
         )
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        'Неверный код подтверждения или имя пользователя!',
+        status=status.HTTP_400_BAD_REQUEST
+    )
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -100,19 +108,28 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         methods=['get', 'patch',],
         detail=False, url_path='me',
-        permission_classes=[IsAuthenticated],
-        serializer_class=UserEditSerializer
+        permission_classes=(IsAuthenticated,),
     )
     def get_edit_user(self, request):
-        user = request.user
-        serializer = self.get_serializer(user)
-        if request.method == 'PATCH':
-            serializer = self.get_serializer(
-                user, data=request.data, partial=True
+        data = request.data
+        print(data)
+        if request.method == 'GET':
+            serializer = UserSerializer(request.user)
+            data = request.data
+            print(data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif request.method == 'PATCH':
+            serializer = UserEditSerializer(
+                request.user,
+                data=request.data,
+                partial=True
             )
+            data = request.data
+            print(data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
 
 
 class ListCreateDestroyViewSet(

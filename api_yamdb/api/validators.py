@@ -1,6 +1,8 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.exceptions import ValidationError
 
 from reviews.models import Category, Genre
+from users.models import User
 
 
 class ValidateTitle:

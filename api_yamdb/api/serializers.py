@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.serializers import SlugRelatedField
 from rest_framework.validators import UniqueValidator
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.validators import ValidateUsername
@@ -23,17 +24,20 @@ class UserSerializer(serializers.ModelSerializer, ValidateUsername):
         lookup_field = ('username',)
 
 
-class RegistrationSerializer(serializers.Serializer, ValidateUsername):
+class RegistrationSerializer(UserSerializer, ValidateUsername):
     """Сериализатор регистрации User."""
 
     username = serializers.CharField(
         required=True,
         max_length=150,
+        validators=[UniqueValidator(queryset=User.objects.all())]
     )
     email = serializers.EmailField(
         required=True,
         max_length=254,
+        validators=[UniqueValidator(queryset=User.objects.all())]
     )
+
 
 
 class TokenSerializer(serializers.Serializer, ValidateUsername):

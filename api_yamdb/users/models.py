@@ -6,7 +6,7 @@ from .validators import ValidateUsername
 
 class User(AbstractUser):
     """Класс пользователей."""
-
+    
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     USER = 'user'
@@ -53,6 +53,7 @@ class User(AbstractUser):
         verbose_name='confirmation_code',
         max_length=50,
         blank=True,
+        default=0
     )
 
     class Meta:
@@ -69,16 +70,12 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return (
-            self.role == self.ADMIN
-            or self.is_staff
-            or self.is_superuser
-        )
+        if self.role == User.ADMIN or self.is_staff or self.is_superuser:
+            User.is_staff = True
+            User.is_superuser = True
+            User.save(self)
+            return User
 
     @property
     def is_moderator(self):
-        return self.role == self.MODERATOR
-
-    @property
-    def is_user(self):
-        return self.role == self.USER
+        return self.role == 'moderator'
