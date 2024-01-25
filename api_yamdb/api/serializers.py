@@ -1,5 +1,3 @@
-from statistics import mean
-
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -54,13 +52,6 @@ class UserEditSerializer(UserSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор модели Category."""
 
-    slug = serializers.SlugField(
-        max_length=50,
-        validators=[
-            UniqueValidator(queryset=Category.objects.all()),
-        ]
-    )
-
     class Meta:
         fields = ('name', 'slug')
         model = Category
@@ -68,13 +59,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор модели Genre."""
-
-    slug = serializers.SlugField(
-        max_length=50,
-        validators=[
-            UniqueValidator(queryset=Genre.objects.all()),
-        ]
-    )
 
     class Meta:
         fields = ('name', 'slug')
@@ -86,19 +70,13 @@ class TitleRSerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         fields = (
             'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
         )
         model = Title
-
-    def get_rating(self, obj):
-        reviews = obj.reviews.all()
-        return round(
-            mean(review.score for review in reviews)
-        ) if reviews else None
 
 
 class TitleCUDSerializer(serializers.ModelSerializer):
@@ -113,11 +91,10 @@ class TitleCUDSerializer(serializers.ModelSerializer):
         slug_field='slug',
         many=True
     )
-    rating = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
-            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+            'id', 'name', 'year', 'description', 'genre', 'category'
         )
         model = Title
 
@@ -133,12 +110,6 @@ class TitleCUDSerializer(serializers.ModelSerializer):
                 'slug': genre_slug})
         ret['genre'] = genre
         return ret
-
-    def get_rating(self, obj):
-        reviews = obj.reviews.all()
-        return round(
-            mean(review.score for review in reviews)
-        ) if reviews else None
 
 
 class ReviewSerializer(serializers.ModelSerializer):
