@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -21,19 +22,31 @@ class UserSerializer(serializers.ModelSerializer, ValidateUsername):
         lookup_field = ('username',)
 
 
-class RegistrationSerializer(UserSerializer, ValidateUsername):
+class RegistrationSerializer(serializers.Serializer, ValidateUsername):
     """Сериализатор регистрации User."""
 
     username = serializers.CharField(
         required=True,
-        max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        max_length=150
     )
     email = serializers.EmailField(
         required=True,
-        max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        max_length=254
     )
+
+    def create(self, validated_data):
+        username = validated_data['username']
+        email = validated_data['email']
+        try:
+            user = User.objects.get(username=username, email=email)
+
+        except ObjectDoesNotExist:
+            user = User(
+                username=validated_data['username'],
+                email=validated_data['email']
+            )
+            user.save()
+        return user
 
 
 class TokenSerializer(serializers.Serializer, ValidateUsername):

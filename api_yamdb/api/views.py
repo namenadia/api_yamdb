@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg
 from django.db.models.functions import Round
 from django_filters.rest_framework import DjangoFilterBackend
@@ -38,21 +37,14 @@ User = get_user_model()
 @api_view(['POST'])
 def register_user(request):
     """Функция регистрации user, генерации и отправки кода на почту."""
-    username = request.data.get('username')
-    email = request.data.get('email')
 
-    try:
-        '''Если пользователь уже существует, посылаем ему код.'''
-        user = User.objects.get(email=email, username=username)
-        confirmation_code = give_confirmation_code(user)
-        data = request.data
-    except ObjectDoesNotExist:
-        serializer = RegistrationSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = User.objects.create(email=email, username=username)
-        confirmation_code = give_confirmation_code(user)
-        data = serializer.data
-    send_confirmation_code(email, confirmation_code)
+    serializer = RegistrationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    data = serializer.data
+    user = User.objects.get(username=data['username'], email=data['email'])
+    confirmation_code = give_confirmation_code(user)
+    send_confirmation_code(data['email'], confirmation_code)
     return Response(data, status=status.HTTP_200_OK)
 
 
