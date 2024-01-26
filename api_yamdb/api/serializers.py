@@ -1,5 +1,3 @@
-from statistics import mean
-
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -86,19 +84,13 @@ class TitleRSerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField()
 
     class Meta:
         fields = (
             'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
         )
         model = Title
-
-    def get_rating(self, obj):
-        reviews = obj.reviews.all()
-        return round(
-            mean(review.score for review in reviews)
-        ) if reviews else None
 
 
 class TitleCUDSerializer(serializers.ModelSerializer):
@@ -113,7 +105,7 @@ class TitleCUDSerializer(serializers.ModelSerializer):
         slug_field='slug',
         many=True
     )
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True, default=None)
 
     class Meta:
         fields = (
@@ -133,12 +125,6 @@ class TitleCUDSerializer(serializers.ModelSerializer):
                 'slug': genre_slug})
         ret['genre'] = genre
         return ret
-
-    def get_rating(self, obj):
-        reviews = obj.reviews.all()
-        return round(
-            mean(review.score for review in reviews)
-        ) if reviews else None
 
 
 class ReviewSerializer(serializers.ModelSerializer):

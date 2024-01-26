@@ -97,6 +97,7 @@ class Review(PubDateBaseModel):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
+        related_name='reviews'
     )
 
     class Meta(PubDateBaseModel.Meta):

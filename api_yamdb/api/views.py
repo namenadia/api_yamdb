@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Avg
+from django.db.models.functions import Round
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view
@@ -152,6 +154,11 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return TitleRSerializer
         return TitleCUDSerializer
+
+    def get_queryset(self):
+        queryset = Title.objects.all().annotate(
+            rating=Round(Avg('reviews__score'))).order_by('name')
+        return queryset
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
