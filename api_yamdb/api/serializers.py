@@ -22,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer, ValidateUsername):
         lookup_field = ('username',)
 
 
-class RegistrationSerializer(serializers.Serializer, ValidateUsername):
+class RegistrationSerializer(UserSerializer, ValidateUsername):
     """Сериализатор регистрации User."""
 
     username = serializers.CharField(
@@ -34,6 +34,10 @@ class RegistrationSerializer(serializers.Serializer, ValidateUsername):
         max_length=254
     )
 
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
     def create(self, validated_data):
         username = validated_data['username']
         email = validated_data['email']
@@ -41,6 +45,8 @@ class RegistrationSerializer(serializers.Serializer, ValidateUsername):
             user = User.objects.get(username=username, email=email)
 
         except ObjectDoesNotExist:
+            if User.objects.filter(email=email).exists() or User.objects.filter(username=username).exists():
+                raise ValidationError('Такая почта уже зарегестирована!')
             user = User(
                 username=validated_data['username'],
                 email=validated_data['email']
