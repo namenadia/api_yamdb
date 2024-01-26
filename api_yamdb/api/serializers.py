@@ -40,7 +40,7 @@ class TokenSerializer(serializers.Serializer, ValidateUsername):
     """Сериализатор токена."""
 
     username = serializers.CharField(required=True, max_length=150)
-    confirmation_code = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(max_length=50, required=True)
 
 
 class UserEditSerializer(UserSerializer):

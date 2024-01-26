@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg
 from django.db.models.functions import Round
@@ -29,7 +30,7 @@ from .serializers import (
     UserEditSerializer,
     UserSerializer
 )
-from .utils import send_confirmation_code, give_and_save_confirmation_code
+from .utils import send_confirmation_code, give_confirmation_code
 
 User = get_user_model()
 
@@ -43,15 +44,15 @@ def register_user(request):
     try:
         '''Если пользователь уже существует, посылаем ему код.'''
         user = User.objects.get(email=email, username=username)
-        give_and_save_confirmation_code(user)
+        confirmation_code = give_confirmation_code(user)
         data = request.data
     except ObjectDoesNotExist:
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = User.objects.create(email=email, username=username)
-        give_and_save_confirmation_code(user)
+        confirmation_code = give_confirmation_code(user)
         data = serializer.data
-    send_confirmation_code(email, user.confirmation_code)
+    send_confirmation_code(email, confirmation_code)
     return Response(data, status=status.HTTP_200_OK)
 
 
@@ -64,7 +65,7 @@ def get_token(request):
     confirmation_code = serializer.validated_data['confirmation_code']
     user = get_object_or_404(User, username=username)
 
-    if user.confirmation_code == confirmation_code:
+    if default_token_generator.check_token(user, confirmation_code):
         token = AccessToken.for_user(user)
         return Response(
             data={'token': str(token)},
