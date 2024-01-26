@@ -14,5 +14,5 @@ def send_confirmation_code(email, confirmation_code):
 
 
 def give_confirmation_code(user):
-    """Сохраняет код в базе данных."""
+    """получаем код."""
     return default_token_generator.make_token(user)

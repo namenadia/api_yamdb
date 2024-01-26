@@ -22,7 +22,6 @@ from .serializers import (
     CategorySerializer,
     CommentSerializer,
     GenreSerializer,
-    RegistrationSerializer,
     ReviewSerializer,
     TitleCUDSerializer,
     TitleRSerializer,
@@ -47,7 +46,7 @@ def register_user(request):
         confirmation_code = give_confirmation_code(user)
         data = request.data
     except ObjectDoesNotExist:
-        serializer = RegistrationSerializer(data=request.data)
+        serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = User.objects.create(email=email, username=username)
         confirmation_code = give_confirmation_code(user)

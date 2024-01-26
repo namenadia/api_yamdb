@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from .validators import ValidateUsername
+from .validators import validate_username
 
 ADMIN = 'admin'
 MODERATOR = 'moderator'
@@ -22,7 +22,7 @@ class User(AbstractUser):
         verbose_name='Имя пользователя',
         unique=True,
         db_index=True,
-        validators=[ValidateUsername]
+        validators=[validate_username]
     )
     email = models.EmailField(
         max_length=254,
@@ -56,7 +56,8 @@ class User(AbstractUser):
         ordering = ('username',)
         constraints = [
             models.CheckConstraint(
-                check=~models.Q(username='me'), name='name_not_me')
+                check=~models.Q(username='me'), name='name_not_me'),
+            models.UniqueConstraint(fields=['username', 'email'], name='unique_fields')
         ]
 
     def __str__(self):

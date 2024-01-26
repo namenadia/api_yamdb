@@ -6,12 +6,11 @@ from rest_framework.serializers import SlugRelatedField
 from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.validators import ValidateUsername
 
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer, ValidateUsername):
+class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели User."""
 
     class Meta:
@@ -21,22 +20,7 @@ class UserSerializer(serializers.ModelSerializer, ValidateUsername):
         lookup_field = ('username',)
 
 
-class RegistrationSerializer(UserSerializer, ValidateUsername):
-    """Сериализатор регистрации User."""
-
-    username = serializers.CharField(
-        required=True,
-        max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
-    email = serializers.EmailField(
-        required=True,
-        max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
-
-
-class TokenSerializer(serializers.Serializer, ValidateUsername):
+class TokenSerializer(serializers.Serializer):
     """Сериализатор токена."""
 
     username = serializers.CharField(required=True, max_length=150)
