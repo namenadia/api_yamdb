@@ -3,7 +3,6 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.serializers import SlugRelatedField
-from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -18,6 +17,19 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
         lookup_field = ('username',)
+
+
+class RegistrationSerializer(serializers.ModelSerializer):
+    """Сериализатор регистрации User."""
+
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+    def validate(self, data):
+        if User.objects.filter(email=data['email']).exists():
+            raise ValidationError("Email занят.Выслан новый код.")
+        return data
 
 
 class TokenSerializer(serializers.Serializer):

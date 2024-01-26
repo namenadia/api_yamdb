@@ -57,7 +57,8 @@ class User(AbstractUser):
         constraints = [
             models.CheckConstraint(
                 check=~models.Q(username='me'), name='name_not_me'),
-            models.UniqueConstraint(fields=['username', 'email'], name='unique_fields')
+            models.UniqueConstraint(fields=['username', 'email'],
+                                    name='unique_fields')
         ]
 
     def __str__(self):
