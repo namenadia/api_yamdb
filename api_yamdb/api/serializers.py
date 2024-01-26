@@ -52,13 +52,6 @@ class UserEditSerializer(UserSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор модели Category."""
 
-    slug = serializers.SlugField(
-        max_length=50,
-        validators=[
-            UniqueValidator(queryset=Category.objects.all()),
-        ]
-    )
-
     class Meta:
         fields = ('name', 'slug')
         model = Category
@@ -66,13 +59,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор модели Genre."""
-
-    slug = serializers.SlugField(
-        max_length=50,
-        validators=[
-            UniqueValidator(queryset=Genre.objects.all()),
-        ]
-    )
 
     class Meta:
         fields = ('name', 'slug')
