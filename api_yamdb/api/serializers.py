@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.serializers import SlugRelatedField
 
 from reviews.models import Category, Comment, Genre, Review, Title
+from users.validators import validate_username
 
 User = get_user_model()
 
@@ -19,17 +21,40 @@ class UserSerializer(serializers.ModelSerializer):
         lookup_field = ('username',)
 
 
-class RegistrationSerializer(serializers.ModelSerializer):
+class RegistrationSerializer(serializers.Serializer):
     """Сериализатор регистрации User."""
+
+    username = serializers.CharField(
+        required=True,
+        max_length=150,
+        validators=[validate_username]
+    )
+    email = serializers.EmailField(
+        required=True,
+        max_length=254
+    )
 
     class Meta:
         model = User
         fields = ('username', 'email')
 
-    def validate(self, data):
-        if User.objects.filter(email=data['email']).exists():
-            raise ValidationError("Email занят.Выслан новый код.")
-        return data
+    def create(self, validated_data):
+        username = validated_data['username']
+        email = validated_data['email']
+        try:
+            user = User.objects.get(username=username, email=email)
+
+        except ObjectDoesNotExist:
+            if User.objects.filter(
+                email=email
+            ).exists() or User.objects.filter(username=username).exists():
+                raise ValidationError('Такая почта уже зарегестирована!')
+            user = User(
+                username=validated_data['username'],
+                email=validated_data['email']
+            )
+            user.save()
+        return user
 
 
 class TokenSerializer(serializers.Serializer):
