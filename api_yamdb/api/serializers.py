@@ -39,7 +39,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
         fields = ('username', 'email')
 
     def create(self, validated_data):
-        print(validated_data)
         username = validated_data['username']
         email = validated_data['email']
         try:
@@ -47,7 +46,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
         except ObjectDoesNotExist:
             serializers = UserSerializer(data=validated_data)
             serializers.is_valid(raise_exception=True)
-
             user = User(
                 username=serializers.validated_data['username'],
                 email=serializers.validated_data['email']
