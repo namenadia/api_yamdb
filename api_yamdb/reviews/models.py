@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .utils import validate_year
+from .utils import current_year
 from core.models import PubDateBaseModel, NameSlugBaseModel
 
 User = get_user_model()
@@ -37,7 +37,7 @@ class Title(models.Model):
     name = models.CharField('Название', max_length=256)
     year = models.PositiveSmallIntegerField(
         'Год выпуска',
-        validators=[validate_year, ],
+        validators=[current_year, ],
     )
     description = models.TextField('Описание', blank=True)
     category = models.ForeignKey(
