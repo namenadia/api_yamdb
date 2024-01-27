@@ -181,10 +181,13 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [IsAdminModeratOrAuthorOrReadOnly, ]
     http_method_names = ['get', 'post', 'patch', 'delete']
+    lookup_url_kwarg = 'commit_id'
 
     def get_review(self):
+        title = get_object_or_404(
+            Title, id=self.kwargs.get('title_id'))
         return get_object_or_404(
-            Review, id=self.kwargs.get('review_id')
+            Review, id=self.kwargs.get('review_id'), title=title.id
         )
 
     def get_queryset(self):
