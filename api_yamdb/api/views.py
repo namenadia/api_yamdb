@@ -40,11 +40,12 @@ def register_user(request):
     serializer = RegistrationSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     serializer.save()
-    data = serializer.data
-    user = User.objects.get(username=data['username'], email=data['email'])
+    email = serializer.validated_data.get('email')
+    user = User.objects.get(username=serializer.validated_data.get('username'),
+                            email=email)
     confirmation_code = give_confirmation_code(user)
-    send_confirmation_code(data['email'], confirmation_code)
-    return Response(data, status=status.HTTP_200_OK)
+    send_confirmation_code(email, confirmation_code)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
