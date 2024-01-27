@@ -8,6 +8,8 @@ from rest_framework.serializers import SlugRelatedField
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.validators import validate_username
 
+from .utils import send_confirmation_code, give_confirmation_code
+
 User = get_user_model()
 
 
@@ -43,12 +45,11 @@ class RegistrationSerializer(serializers.Serializer):
         email = validated_data['email']
         try:
             user = User.objects.get(username=username, email=email)
-
+            confirmation_code = give_confirmation_code(user)
+            send_confirmation_code(validated_data['email'], confirmation_code)
         except ObjectDoesNotExist:
-            if User.objects.filter(
-                email=email
-            ).exists() or User.objects.filter(username=username).exists():
-                raise ValidationError('Такая почта уже зарегестирована!')
+            serializers = UserSerializer(data=validated_data)
+            serializers.is_valid(raise_exception=True)
             user = User(
                 username=validated_data['username'],
                 email=validated_data['email']
