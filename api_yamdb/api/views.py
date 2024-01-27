@@ -79,11 +79,7 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     lookup_field = 'username'
     lookup_value_regex = '[^/]+'
-
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     @action(
         methods=['get', 'patch', ],
