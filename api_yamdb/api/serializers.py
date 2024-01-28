@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -39,18 +39,19 @@ class RegistrationSerializer(serializers.ModelSerializer):
         fields = ('username', 'email')
 
     def create(self, validated_data):
-        username = validated_data['username']
-        email = validated_data['email']
         try:
-            user = User.objects.get(username=username, email=email)
-        except ObjectDoesNotExist:
-            serializers = UserSerializer(data=validated_data)
-            serializers.is_valid(raise_exception=True)
-            user = User(
-                username=serializers.validated_data['username'],
-                email=serializers.validated_data['email']
-            )
+            user, is_created = User.objects.get_or_create(**validated_data)
             user.save()
+        except IntegrityError:
+            if User.objects.filter(username=validated_data['username']
+                                   ).exists():
+                raise serializers.ValidationError(
+                    "Пользователь с таким username существует."
+                )
+            else:
+                raise serializers.ValidationError(
+                    "Пользователь с таким email существует."
+                )
         return user
 
 

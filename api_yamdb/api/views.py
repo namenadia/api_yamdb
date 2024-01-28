@@ -39,12 +39,10 @@ def register_user(request):
     """Функция регистрации user, генерации и отправки кода на почту."""
     serializer = RegistrationSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
-    email = serializer.validated_data.get('email')
-    user = User.objects.get(username=serializer.validated_data.get('username'),
-                            email=email)
-    confirmation_code = give_confirmation_code(user)
-    send_confirmation_code(email, confirmation_code)
+    user = serializer.save()
+    confirmation_code = give_confirmation_code(user=user)
+    send_confirmation_code(email=user.email,
+                           confirmation_code=confirmation_code)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -144,7 +142,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleCUDSerializer
 
     def get_queryset(self):
-        queryset = Title.objects.all().annotate(
+        queryset = Title.objects.annotate(
             rating=Round(Avg('reviews__score'))).order_by('name')
         return queryset
 
