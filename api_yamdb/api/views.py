@@ -131,6 +131,9 @@ class GenreViewSet(ListCreateDestroyViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
 
+    queryset = Title.objects.annotate(
+            rating=Round(Avg('reviews__score'))
+    ).order_by('name')
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     http_method_names = ['get', 'post', 'patch', 'delete']
@@ -140,11 +143,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return TitleRSerializer
         return TitleCUDSerializer
-
-    def get_queryset(self):
-        queryset = Title.objects.annotate(
-            rating=Round(Avg('reviews__score'))).order_by('name')
-        return queryset
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
